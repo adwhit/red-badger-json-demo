@@ -1,7 +1,16 @@
+use std::path::PathBuf;
+
+use clap::Parser;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use rand::{thread_rng as rng, Rng};
 use serde::Serialize;
+
+#[derive(Parser)]
+struct Cli {
+    n_lines: usize,
+    out_file: PathBuf,
+}
 
 type DateTime = chrono::DateTime<chrono::Utc>;
 
@@ -92,14 +101,15 @@ fn random_event() -> Event {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("create data");
+    let cli = Cli::parse();
+    println!("create {} rows of data", cli.n_lines);
     let mut events = std::iter::repeat_with(random_event)
-        .take(5_000)
+        .take(cli.n_lines)
         .collect::<Vec<_>>();
     events.sort_by_key(|k| k.timestamp);
-    println!("write data");
-    let file = std::io::BufWriter::new(std::fs::File::create("../log.json")?);
-    serde_json::to_writer(file, &events)?;
-    println!("written to ../log.json");
+    println!("write to {}", cli.out_file.display());
+    let file = std::io::BufWriter::new(std::fs::File::create(&cli.out_file)?);
+    serde_json::to_writer_pretty(file, &events)?;
+    println!("done");
     Ok(())
 }

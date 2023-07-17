@@ -1,2 +1,2 @@
 [workspace]
-members = ["build-json", "read-json"]
+members = ["build-json", "read-json", "read-json-simple"]
